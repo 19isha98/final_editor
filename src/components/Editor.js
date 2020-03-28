@@ -1,5 +1,4 @@
  import React, {Component} from 'react';
- import { BlockPicker } from 'react-color';
  import { 
     EditorState,
     SelectionState,
@@ -55,10 +54,8 @@ export default class RichTextExample extends React.Component {
                 const result = blockText.slice(this.state.lastOffset, selectionState.getEndOffset());
                 var dictionary = new Typo("en_US",affData, dictionaryData);
                 var is_spelled_correctly = dictionary.check(result);
-                console.log(result, is_spelled_correctly, this.state.lastOffset);
                 if (!is_spelled_correctly) {
                     var array_of_suggestions = dictionary.suggest(result);
-                    console.log(array_of_suggestions.length);
                     if(array_of_suggestions.length > 0){
                         let replaceText = array_of_suggestions[0]+' ';
                         const blockKey = currentContentBlock.getKey();
@@ -72,17 +69,21 @@ export default class RichTextExample extends React.Component {
                                 focusOffset: selectionState.getEndOffset(),
                             }),
                             replaceText
-                            );
-                            let newOffset = selectionState.getEndOffset() + (replaceText.length - result.length);
-                            this.setState({editorState:
-                                EditorState.push(
-                                    editorState,
-                                    replaced
-                                    )
-                                    , lastOffset: newOffset});
-                                    return true;
-                                }
-                            } 
+                        );
+                        let newOffset = selectionState.getEndOffset() + (replaceText.length - result.length);
+                        const currentSelection = this.state.editorState.getSelection()
+                        editorState = EditorState.push(
+                            editorState,
+                            replaced
+                        )
+                        editorState = EditorState.forceSelection(editorState,currentSelection);
+
+                        this.setState({editorState
+                                ,
+                                    lastOffset: newOffset});
+                        return true;
+                    }
+            }
                             this.setState({editorState, lastOffset: selectionState.getEndOffset()});
             }
         }
@@ -95,8 +96,6 @@ export default class RichTextExample extends React.Component {
                 editorState={this.state.editorState}
                 onEditorStateChange={this.onEditorStateChange}
                 handleBeforeInput={this.handleBeforeInput}
-                handleKeyCommand={this.handleKeyCommand}
-                keyBindingFn={this.myKeyBindingFn}
                 spellCheck={false}
                 autocorrect="off"
                 wrapperClassName="demo-wrapper"
